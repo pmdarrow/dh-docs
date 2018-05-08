@@ -1,0 +1,755 @@
+---
+swagger: "2.0"
+info:
+  description: "No description"
+  version: "1.0.0"
+  title: "dash-hudson"
+  contact: {}
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /tokens:
+    post:
+      tags:
+      - "identity"
+      summary: "Create an auth token"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            email:
+              type: "string"
+              description: "A user's email address"
+              example: "foo@example.com"
+            password:
+              type: "string"
+              description: "A user's password"
+              example: "bad-example-password"
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            $ref: "#/definitions/Token"
+        401:
+          description: "Status 401"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Username or password is incorrect"
+  /self:
+    get:
+      tags:
+      - "identity"
+      summary: "Get details about the current user"
+      parameters: []
+      responses:
+        200:
+          description: "A user object"
+          schema:
+            $ref: "#/definitions/User"
+  /features:
+    get:
+      tags:
+      - "identity"
+      summary: "Get the set of features the current user has access to"
+      parameters: []
+      responses:
+        200:
+          description: "A features object"
+          schema:
+            $ref: "#/definitions/Features"
+  /customer:
+    get:
+      tags:
+      - "identity"
+      summary: "Get details about the customer associated with the current user"
+      description: "A customer (e.g. Condé Nast) shouldn't be confused with an account\
+        \ (e.g. GQ, Vogue, Vanity Fair) or a user (e.g. jane@example.com)."
+      parameters: []
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            $ref: "#/definitions/Customer"
+  /accounts:
+    get:
+      tags:
+      - "identity"
+      summary: "Get a list of accounts the current user has access to"
+      description: "A customer (e.g. Condé Nast) has many accounts (e.g. GQ, Vogue,\
+        \ Vanity Fair). These shouldn't be confused with users (e.g. jane@example.com)."
+      parameters: []
+      responses:
+        200:
+          description: "An account object"
+          schema:
+            $ref: "#/definitions/Account"
+  /accounts/{accountID}/products:
+    get:
+      tags:
+      - "products"
+      summary: "Get a list of products"
+      parameters:
+      - name: "search"
+        in: "query"
+        required: false
+        type: "string"
+        description: "A keyword to filter the list of products by"
+      responses:
+        200:
+          description: "An array of products"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product"
+    post:
+      tags:
+      - "products"
+      summary: "Create a new product"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/ProductParams"
+      responses:
+        200:
+          description: "The newly created product"
+          schema:
+            $ref: "#/definitions/Product"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/products/{productID}:
+    delete:
+      tags:
+      - "products"
+      summary: "Delete a product"
+      parameters: []
+      responses:
+        204:
+          description: "Product deleted"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+    - name: "productID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/instagram/scheduled_posts:
+    get:
+      tags:
+      - "scheduled_posts"
+      summary: "Get a list of scheduled Instagram posts"
+      parameters:
+      - name: "account_id"
+        in: "query"
+        required: true
+        type: "string"
+        description: "ID of a Dash Hudson account that has an Instagram social connection"
+        x-example: "81241"
+      - name: "start_date"
+        in: "query"
+        required: false
+        type: "string"
+        format: "date"
+        description: "Filter scheduled posts in a specified range"
+      - name: "end_date"
+        in: "query"
+        required: false
+        type: "string"
+        format: "date"
+        description: "Filter scheduled posts in a specified range"
+      responses:
+        200:
+          description: "An array of scheduled posts"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ScheduledPost"
+    post:
+      tags:
+      - "scheduled_posts"
+      summary: "Schedule a new Instagram post"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/ScheduledPostParams"
+      responses:
+        200:
+          description: "The newly scheduled post"
+          schema:
+            $ref: "#/definitions/ScheduledPost"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/instagram/scheduled_posts/{postID}:
+    delete:
+      tags:
+      - "scheduled_posts"
+      summary: "Delete a scheduled Instagram post"
+      parameters: []
+      responses:
+        204:
+          description: "Scheduled post deleted"
+    patch:
+      tags:
+      - "scheduled_posts"
+      summary: "Update a scheduled Instagram post"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/ScheduledPostParams"
+      responses:
+        200:
+          description: "The updated scheduled post"
+          schema:
+            $ref: "#/definitions/ScheduledPost"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+    - name: "postID"
+      in: "path"
+      required: true
+      type: "string"
+      description: "ID of scheduled Instagram post"
+  /accounts/{accountID}/instagram/post_times:
+    get:
+      tags:
+      - "post_times"
+      summary: "Get a list of ideal times to make an Instagram post"
+      parameters:
+      - name: "start_date"
+        in: "query"
+        required: true
+        type: "string"
+        description: "Starting range of ideal post times"
+        x-example: "2018-01-01"
+      - name: "end_date"
+        in: "query"
+        required: true
+        type: "string"
+        format: "date"
+        description: "Ending range of ideal post times"
+        x-example: "2018-01-07"
+      responses:
+        200:
+          description: "An array of ideal post times"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                start_time:
+                  type: "string"
+                  format: "date-time"
+                  description: "Starting date/time of ideal post period (ISO 8601\
+                    \ format)"
+                end_time:
+                  type: "string"
+                  format: "date-time"
+                  description: "Ending date/time of ideal post period (ISO 8601 format)"
+                engagement:
+                  type: "number"
+                  description: "Percentage of engagement for this period"
+                  example: 0.08
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/instagram/stats:
+    get:
+      tags:
+      - "stats"
+      summary: "Get stats about an Instagram feed"
+      parameters: []
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            type: "object"
+            properties:
+              average_posts_weekly:
+                type: "integer"
+                description: "The average number of posts per week"
+                example: 13
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/reports:
+    post:
+      tags:
+      - "reports"
+      summary: "Generate a new PDF report"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          type: "object"
+          required:
+          - "report_type"
+          properties:
+            report_type:
+              type: "string"
+              description: "The type of report to generate"
+              enum:
+              - "scheduled_posts_overview"
+              - "instagram_feed_preview"
+      responses:
+        202:
+          description: "Report generation started"
+          schema:
+            $ref: "#/definitions/Report"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/reports/{reportID}:
+    get:
+      tags:
+      - "reports"
+      summary: "Retrieve generated PDF report"
+      parameters: []
+      responses:
+        200:
+          description: "A report object"
+          schema:
+            $ref: "#/definitions/Report"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+    - name: "reportID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/boards:
+    get:
+      tags:
+      - "boards"
+      summary: "Get a list of boards"
+      parameters: []
+      responses:
+        200:
+          description: "An array of boards"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Board"
+    post:
+      tags:
+      - "boards"
+      summary: "Create a new board"
+      consumes: []
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/BoardParams"
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            $ref: "#/definitions/Board"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+  /accounts/{accountID}/tags:
+    get:
+      tags:
+      - "tags"
+      summary: "Get a list of tags"
+      description: "Tags are set of strings that can be applied to a board. They are\
+        \ unique to a given account and are case-insensitive. In the UI, tags can\
+        \ be assigned a consistent color with something like https://github.com/zenozeng/color-hash."
+      parameters: []
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            $ref: "#/definitions/Tag"
+    parameters:
+    - name: "accountID"
+      in: "path"
+      required: true
+      type: "string"
+securityDefinitions:
+  Custom:
+    description: "Clients must send a username and password to the `/tokens` endpoint\
+      \ in exchange for a unique API token. They should store it locally (e.g. localStorage\
+      \ for web clients), and send it in the `Authorization` header with every request,\
+      \ e.g.\n\n```\nAuthorization: Bearer 9adkd912k3d9a9skdd3818d8a8ss\n```\n\nWe\
+      \ store the token in the authentication service’s database along with the user\
+      \ ID, and we look up that token on every request to see if the token is still\
+      \ valid. We can then expire or revoke tokens as needed server-side."
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+definitions:
+  Token:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+        description: "Authentication token"
+        example: "9adkd912k3d9a9skdd3818d8a8ss"
+  User:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+      email:
+        type: "string"
+        description: "The user's email"
+      name:
+        type: "string"
+        description: "The user's name"
+      has_device:
+        type: "boolean"
+        description: "Whether the user has linked a device with the Dash Hudson iOS\
+          \ app."
+  Features:
+    type: "object"
+    properties:
+      instagram:
+        type: "boolean"
+        default: true
+      vision:
+        type: "boolean"
+        default: true
+      scheduler:
+        type: "boolean"
+        default: true
+  Customer:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "ID of customer"
+      name:
+        type: "string"
+        description: "Name of customer"
+        example: "Condé Nast"
+      label:
+        type: "string"
+        description: "URL-safe label for the customer"
+        example: "conde-nast"
+      users:
+        type: "array"
+        description: "An array of users associated with the customer"
+        items:
+          $ref: "#/definitions/User"
+  Account:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          description: "ID of account"
+        name:
+          type: "string"
+          description: "Name of account"
+          example: "Vanity Fair"
+        label:
+          type: "string"
+          description: "URL-safe label for the account"
+          example: "vanity-fair"
+        avatar_url:
+          type: "string"
+          description: "Avatar URL for account"
+          example: "https://imgs.dashhudson.com/avatars/4821.png"
+        social_connections:
+          type: "array"
+          description: "Array of social connections / channels an account is linked\
+            \ to"
+          items:
+            type: "string"
+            enum:
+            - "instagram"
+            - "pinterest"
+            - "twitter"
+            - "facebook"
+  Product:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "ID of product"
+      url:
+        type: "string"
+        description: "External URL to product"
+        example: "https://example.com/store/product-url"
+      title:
+        type: "string"
+        description: "Product title (usually the title of the URL)"
+      image:
+        type: "string"
+        description: "Product image (usually a preview of the URL)"
+  ProductParams:
+    type: "object"
+    required:
+    - "url"
+    properties:
+      url:
+        type: "string"
+        description: "External URL to product"
+      title:
+        type: "string"
+        description: "Product title (usually the title of the URL)"
+      image:
+        type: "string"
+        description: "Product image (usually a preview of the URL)"
+  ScheduledPost:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          description: "ID of scheduled post"
+        date:
+          type: "string"
+          format: "date-time"
+          description: "Date/time of scheduled post (ISO 8601 format)"
+        caption:
+          type: "string"
+          description: "Caption of post"
+        location_id:
+          type: "string"
+          description: "Location ID from Instagram API"
+        media:
+          type: "array"
+          description: "Array of media IDs from Dash Hudson library. If multiple media\
+            \ IDs are provided, the post will be a carousel."
+          items:
+            type: "string"
+            example: "352352"
+        status:
+          type: "string"
+          enum:
+          - "draft"
+          - "scheduled"
+          - "posted"
+          - "deleted"
+        boards:
+          type: "array"
+          description: "Array of Dash Hudson board IDs (from `/boards`) to add image\
+            \ to when posted"
+          items:
+            type: "string"
+            example: "512515"
+        user_tags:
+          type: "array"
+          description: "Instagram user tags"
+          items:
+            type: "object"
+            properties:
+              username:
+                type: "string"
+                description: "Instagram username"
+              x:
+                type: "number"
+                description: "x coordinate of tag on image"
+              y:
+                type: "number"
+                description: "y coordinate of tag on image"
+        likeshop_links:
+          type: "array"
+          description: "Links to add to Likeshop for this post"
+          items:
+            type: "object"
+            properties:
+              product_id:
+                type: "number"
+                description: "ID of product in Dash Hudson library"
+              countries:
+                type: "array"
+                description: "Array of three-letter country codes (ISO 3166) to show\
+                  \ link in"
+                items:
+                  type: "string"
+              x:
+                type: "number"
+                description: "x coordinate of link"
+              y:
+                type: "string"
+                description: "y coordinate link"
+        notify_users:
+          type: "array"
+          description: "Array of user IDs from `/customer` to send push notifications\
+            \ to when a post is ready to go live"
+          items:
+            type: "string"
+  ScheduledPostParams:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        date:
+          type: "string"
+          format: "date-time"
+          description: "Date/time of scheduled post (ISO 8601 format)"
+        caption:
+          type: "string"
+          description: "Caption of post"
+        location_id:
+          type: "string"
+          description: "Location ID from Instagram API"
+        media:
+          type: "array"
+          description: "Array of media IDs from Dash Hudson library. If multiple media\
+            \ IDs are provided, the post will be a carousel."
+          items:
+            type: "string"
+            example: "352352"
+        status:
+          type: "string"
+          enum:
+          - "draft"
+          - "scheduled"
+          - "posted"
+          - "deleted"
+        boards:
+          type: "array"
+          description: "Array of Dash Hudson board IDs (from `/boards`) to add image\
+            \ to when posted"
+          items:
+            type: "string"
+            example: "512515"
+        user_tags:
+          type: "array"
+          description: "Instagram user tags"
+          items:
+            type: "object"
+            properties:
+              username:
+                type: "string"
+                description: "Instagram username"
+              x:
+                type: "number"
+                description: "x coordinate of tag on image"
+              y:
+                type: "number"
+                description: "y coordinate of tag on image"
+        likeshop_links:
+          type: "array"
+          description: "Links to add to Likeshop for this post"
+          items:
+            type: "object"
+            properties:
+              product_id:
+                type: "number"
+                description: "ID of product in Dash Hudson library"
+              countries:
+                type: "array"
+                description: "Array of three-letter country codes (ISO 3166) to show\
+                  \ link in"
+                items:
+                  type: "string"
+              x:
+                type: "number"
+                description: "x coordinate of link"
+              y:
+                type: "string"
+                description: "y coordinate link"
+  Report:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "ID of report"
+      report_type:
+        type: "string"
+        description: "The type of report"
+        enum:
+        - "overview"
+        - "instagram_feed_preview"
+      status:
+        type: "string"
+        description: "The status of the report being generated"
+        enum:
+        - "generating"
+        - "complete"
+      url:
+        type: "string"
+        description: "URL to PDF report. Only present when status is `complete`."
+  Board:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "Board ID"
+      name:
+        type: "string"
+        description: "The name of the board"
+      description:
+        type: "string"
+        description: "The description of the board"
+      tags:
+        type: "array"
+        description: "An array of tags associated with this board"
+        items:
+          type: "string"
+          example: "own"
+  BoardParams:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      name:
+        type: "string"
+        description: "The name of the board"
+      description:
+        type: "string"
+        description: "The description of the board"
+      tags:
+        type: "array"
+        description: "An array of tags associated with this board. Tags provided that\
+          \ don't exist for the given account will be created by the server and made\
+          \ available at `/tags`"
+        items:
+          type: "string"
+          example: "own"
+  Tag:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          description: "The name of the tag"
+          example: "ugc"
