@@ -3,10 +3,13 @@
 This doc is so cool
 
 ```
-Here's a code block
+Here's a code block now
 ```
 
-```json=
+![](https://i.imgur.com/jVpN33e.jpg)
+
+
+```json
 {
   "id": 12123,
   "brand_id": 144,
